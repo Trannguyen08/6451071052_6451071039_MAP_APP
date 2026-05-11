@@ -4,7 +4,7 @@ class UserModel {
   final String? fullName;
   final String? phoneNumber;
   final String? password; // Hashed password
-  final bool isVerified;
+  bool isVerified;
   final String? otp;
   final DateTime? otpExpiry;
 

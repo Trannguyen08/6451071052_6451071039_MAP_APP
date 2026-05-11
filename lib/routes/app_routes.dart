@@ -7,4 +7,8 @@ abstract class AppRoutes {
   static const home = '/';
   static const auth = '/auth';
   static const splash = '/splash';
+  static const orderHistory = '/order-history';
+  static const cart = '/cart';
+  static const adminUsers = '/admin/users';
+  static const paymentSuccess = '/payment-success';
 }

@@ -20,7 +20,9 @@ class AuthService {
 
   // Khởi tạo 1 lần duy nhất làm field của class
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-    clientId: dotenv.get('GOOGLE_CLIENT_ID'),
+    // Đối với Android/iOS, plugin tự đọc từ file cấu hình (google-services.json / GoogleService-Info.plist).
+    // Chỉ cần truyền clientId khi chạy trên Web.
+    clientId: kIsWeb ? dotenv.get('GOOGLE_CLIENT_ID') : null,
     scopes: ['email', 'profile'],
   );
 
@@ -35,10 +37,32 @@ class AuthService {
     return (100000 + Random().nextInt(900000)).toString();
   }
 
-  // 3. (Đã gỡ bỏ phần gửi OTP qua Email)
+  // 3. Send OTP Email
+  Future<void> _sendOTPEmail(String email, String otp) async {
+    final smtpServer = gmail(
+      dotenv.get('EMAIL_HOST_USER'),
+      dotenv.get('EMAIL_HOST_PASSWORD'),
+    );
 
+    final message = Message()
+      ..from = Address(dotenv.get('EMAIL_HOST_USER'), 'FoodHero App')
+      ..recipients.add(email)
+      ..subject = 'Mã xác thực tài khoản FoodHero'
+      ..html = '''
+        <h3>Chào mừng bạn đến với FoodHero!</h3>
+        <p>Mã xác thực (OTP) của bạn là: <strong>$otp</strong></p>
+        <p>Mã này có hiệu lực trong 5 phút.</p>
+        <p>Nếu bạn không yêu cầu mã này, vui lòng bỏ qua email.</p>
+      ''';
+
+    try {
+      await send(message, smtpServer);
+    } catch (e) {
+      throw 'Không thể gửi email xác thực. Vui lòng kiểm tra lại địa chỉ email.';
+    }
+  }
   // 4. Register
-  Future<Map<String, String>> register({
+  Future<void> register({
     required String email,
     required String password,
     required String fullName,
@@ -50,17 +74,22 @@ class AuthService {
     var doc = await _users.where('email', isEqualTo: email).get();
     if (doc.docs.isNotEmpty) throw 'Email đã tồn tại';
 
+    String otp = _generateOTP();
+
     UserModel newUser = UserModel(
       email: email,
       password: _hashPassword(password),
       fullName: fullName,
       phoneNumber: phoneNumber,
-      isVerified: true, // Tự động xác thực
+      isVerified: false,
+      otp: otp,
+      otpExpiry: DateTime.now().add(const Duration(minutes: 5)),
     );
 
-    var docRef = await _users.add(newUser.toFirestore());
-    UserModel user = UserModel.fromFirestore(newUser.toFirestore(), docRef.id);
-    return _generateTokens(user);
+    await _users.add(newUser.toFirestore());
+    await _sendOTPEmail(email, otp);
+    
+    throw 'VERIFICATION_REQUIRED';
   }
 
   // 5. Login
@@ -81,7 +110,7 @@ class AuthService {
   }
 
   // 6. Verify OTP
-  Future<void> verifyOTP(String email, String otp) async {
+  Future<Map<String, String>> verifyOTP(String email, String otp) async {
     var query = await _users.where('email', isEqualTo: email).get();
     if (query.docs.isEmpty) throw 'Người dùng không tồn tại';
 
@@ -96,6 +125,9 @@ class AuthService {
       'otp': null,
       'otpExpiry': null,
     });
+
+    user.isVerified = true;
+    return _generateTokens(user);
   }
 
   // 7. Token Generation
