@@ -28,5 +28,8 @@ class AppPages {
       name: AppRoutes.verifyOtp,
       page: () => VerifyOtpScreen(),
     ),
+      name: AppRoutes.home,
+      page: () => const HomeScreen(),
+    ),
   ];
 }
