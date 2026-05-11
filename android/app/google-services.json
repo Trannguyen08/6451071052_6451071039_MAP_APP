@@ -12,7 +12,16 @@
           "package_name": "com.example.fast_food_app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "895614098071-bh0f5pjqo9m9h8lhe5s2jm3in3f2k3bd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.fast_food_app",
+            "certificate_hash": ""
+          }
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBuFeAPoTmjCU-UChL8PEOaMrBhJ3K94-I"

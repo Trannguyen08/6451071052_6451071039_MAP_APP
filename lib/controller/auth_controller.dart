@@ -87,17 +87,19 @@ class AuthController extends GetxController {
   ) async {
     try {
       isLoading.value = true;
-      final tokens = await _authService.register(
+      await _authService.register(
         email: email,
         password: password,
         fullName: name,
         phoneNumber: phone,
       );
-      _saveTokens(tokens);
-      Get.offAllNamed(AppRoutes.home);
-      Get.snackbar('Thành công', 'Đăng ký tài khoản thành công!');
     } catch (e) {
-      Get.snackbar('Lỗi', e.toString());
+      if (e.toString() == 'VERIFICATION_REQUIRED') {
+        Get.toNamed(AppRoutes.verifyOtp, arguments: {'email': email});
+        Get.snackbar('Xác thực Email', 'Mã OTP đã được gửi đến email của bạn.');
+      } else {
+        Get.snackbar('Lỗi', e.toString());
+      }
     } finally {
       isLoading.value = false;
     }
@@ -106,9 +108,10 @@ class AuthController extends GetxController {
   Future<void> verifyOTP(String email, String otp) async {
     try {
       isLoading.value = true;
-      await _authService.verifyOTP(email, otp);
-      Get.offAllNamed(AppRoutes.login);
-      Get.snackbar('Thành công', 'Xác thực email thành công, vui lòng đăng nhập');
+      final tokens = await _authService.verifyOTP(email, otp);
+      _saveTokens(tokens);
+      Get.offAllNamed(AppRoutes.home);
+      Get.snackbar('Thành công', 'Đăng ký và xác thực tài khoản thành công!');
     } catch (e) {
       Get.snackbar('Lỗi', e.toString());
     } finally {
