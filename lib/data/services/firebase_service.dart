@@ -1,8 +1,10 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FirebaseService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instanceFor(
-    databaseId: 'fast-food',
+    app: Firebase.app(),
+    databaseId: 'fastfood',
   );
 
   // Collections for Fast Food System
