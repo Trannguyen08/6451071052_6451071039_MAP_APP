@@ -48,6 +48,8 @@ class AppPages {
     GetPage(
       name: AppRoutes.paymentSuccess,
       page: () => const PaymentSuccessScreen(),
+      name: AppRoutes.home,
+      page: () => const HomeScreen(),
     ),
   ];
 }
