@@ -7,14 +7,18 @@ import 'firebase_options.dart';
 import 'routes/app_pages.dart';
 import 'routes/app_routes.dart';
 import 'bindings/initial_binding.dart';
+import 'data/services/seed_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
   await GetStorage.init();
   await dotenv.load(fileName: "env");
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+//   await SeedService().seedCategories();
+// await SeedService().seedProducts();
   runApp(const MyApp());
 }
 
@@ -31,7 +35,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       initialBinding: InitialBinding(),
-      initialRoute: AppRoutes.onboarding,
+      // initialRoute: AppRoutes.onboarding,
       initialRoute: AppRoutes.home,
       getPages: AppPages.pages,
     );

@@ -1,26 +1,30 @@
 class CategoryModel {
   final String id;
   final String name;
-  final String? imageUrl;
+  final String icon;
 
   CategoryModel({
     required this.id,
     required this.name,
-    this.imageUrl,
+    required this.icon,
   });
 
-  factory CategoryModel.fromFirestore(Map<String, dynamic> data, String id) {
+  factory CategoryModel.fromFirestore(
+    Map<String, dynamic> data,
+    String id,
+  ) {
     return CategoryModel(
-      id: id,
+      id: data['id'] ?? id,
       name: data['name'] ?? '',
-      imageUrl: data['imageUrl'],
+      icon: data['icon'] ?? '🍔',
     );
   }
 
   Map<String, dynamic> toFirestore() {
     return {
+      'id': id,
       'name': name,
-      'imageUrl': imageUrl,
+      'icon': icon,
     };
   }
 }
