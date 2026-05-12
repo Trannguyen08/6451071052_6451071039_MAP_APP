@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+import '../../controller/admin_controller.dart';
 import 'widgets/admin_sidebar.dart';
 
 class AdminLayout extends StatelessWidget {
   final Widget content;
   final String title;
+  final ValueChanged<String>? onSearch;
+  final VoidCallback? onCreate;
 
   const AdminLayout({
-    super.key, 
+    super.key,
     required this.content,
     this.title = 'Admin Panel',
+    this.onSearch,
+    this.onCreate,
   });
 
   @override
@@ -37,6 +44,8 @@ class AdminLayout extends StatelessWidget {
   }
 
   Widget _buildHeader(BuildContext context) {
+    final controller = Get.find<AdminController>();
+
     return Container(
       height: 80,
       padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -62,28 +71,52 @@ class AdminLayout extends StatelessWidget {
               color: const Color(0xFFF3F4F6),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const TextField(
-              decoration: InputDecoration(
-                hintText: 'Tìm kiếm tên, email, sđt...',
+            child: TextField(
+              onChanged: onSearch,
+              decoration: const InputDecoration(
+                hintText: 'Tim kiem ten, email, sdt...',
                 prefixIcon: Icon(Icons.search, color: Colors.grey),
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.symmetric(vertical: 10),
               ),
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 12),
+          ElevatedButton.icon(
+            onPressed: onCreate,
+            icon: const Icon(Icons.add, size: 20),
+            label: const Text('Them khach hang'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFE94E1B),
+              foregroundColor: Colors.white,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
           ElevatedButton.icon(
             onPressed: () {},
             icon: const Icon(Icons.file_download_outlined, size: 20),
-            label: const Text('Xuất file Excel'),
+            label: const Text('Xuat file Excel'),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
               foregroundColor: Colors.black,
               elevation: 0,
               side: const BorderSide(color: Color(0xFFE5E7EB)),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
+          ),
+          const SizedBox(width: 12),
+          IconButton(
+            tooltip: 'Dang xuat',
+            onPressed: controller.logout,
+            icon: const Icon(Icons.logout_rounded),
           ),
         ],
       ),

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+import '../../../controller/admin_controller.dart';
 
 class AdminSidebar extends StatelessWidget {
   const AdminSidebar({super.key});
@@ -46,6 +49,8 @@ class AdminSidebar extends StatelessWidget {
   }
 
   Widget _buildUserInfo() {
+    final controller = Get.find<AdminController>();
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Row(
@@ -59,9 +64,15 @@ class AdminSidebar extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Admin Panel',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                Obx(
+                  () => Text(
+                    controller.adminName.value,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
                 Text(
                   'Manage your kitchen',
@@ -86,10 +97,7 @@ class AdminSidebar extends StatelessWidget {
         ),
       ),
       child: ListTile(
-        leading: Icon(
-          icon,
-          color: isActive ? Colors.white : Colors.grey[600],
-        ),
+        leading: Icon(icon, color: isActive ? Colors.white : Colors.grey[600]),
         title: Text(
           title,
           style: TextStyle(

@@ -12,7 +12,7 @@ class OrderHistoryScreen extends StatelessWidget {
     final OrderController controller = Get.put(OrderController());
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFDF7F2), // Màu nền kem nhẹ giống ảnh
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
         children: [
           // Background Decoration
@@ -39,64 +39,15 @@ class OrderHistoryScreen extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 5,
-                            )
-                          ]
+                      Text(
+                        'orders_title'.tr,
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
                         ),
-                        child: const Icon(Icons.menu, color: Colors.black87),
-                      ),
-                      Row(
-                        children: [
-                          Text(
-                            'FoodHero',
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              fontStyle: FontStyle.italic,
-                              color: Colors.orange.shade800,
-                            ),
-                          ),
-                        ],
                       ),
                       const CircleAvatar(
                         radius: 20,
                         backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=foodhero'),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                // Title & Subtitle
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 25),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Lịch sử đơn hàng',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF2D2D2D),
-                        ),
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        'Theo dõi và đặt lại các món ăn yêu thích của bạn',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey,
-                        ),
                       ),
                     ],
                   ),

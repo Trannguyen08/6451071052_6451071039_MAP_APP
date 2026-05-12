@@ -14,17 +14,14 @@ class CartScreen extends StatelessWidget {
     final controller = Get.put(CartController());
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF8F5),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Get.back(),
-        ),
+        automaticallyImplyLeading: false,
         title: const Text(
           'Giỏ hàng của bạn',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         actions: [

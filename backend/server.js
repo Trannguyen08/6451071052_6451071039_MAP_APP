@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const crypto = require('crypto');
 
 const path = require('path');
 const PayOS = require('@payos/node');
@@ -10,6 +11,33 @@ dotenv.config({ path: path.join(__dirname, '../env') });
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Default admin account:
+// email: admin@fastfood.local
+// password: Admin@123456
+const adminAccounts = [
+  {
+    id: 'ADM-001',
+    name: 'System Admin',
+    email: 'admin@fastfood.local',
+    password: 'Admin@123456'
+  }
+];
+
+const adminSessions = new Map();
+
+const requireAdmin = (req, res, next) => {
+  const authHeader = req.headers.authorization || '';
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+  const session = adminSessions.get(token);
+
+  if (!session) {
+    return res.status(401).json({ error: 'Admin authentication required' });
+  }
+
+  req.admin = session;
+  next();
+};
 
 // PayOS Initialization
 const payos = new PayOS(
@@ -100,7 +128,45 @@ let users = [
 ];
 
 // Admin Routes
-app.get('/api/admin/users', (req, res) => {
+app.post('/api/admin/login', (req, res) => {
+  const { email, password } = req.body;
+  const admin = adminAccounts.find(
+    account => account.email === email && account.password === password
+  );
+
+  if (!admin) {
+    return res.status(401).json({ error: 'Email hoặc mật khẩu admin không đúng' });
+  }
+
+  const token = crypto.randomBytes(32).toString('hex');
+  adminSessions.set(token, {
+    id: admin.id,
+    name: admin.name,
+    email: admin.email,
+    createdAt: new Date().toISOString()
+  });
+
+  res.json({
+    token,
+    admin: {
+      id: admin.id,
+      name: admin.name,
+      email: admin.email
+    }
+  });
+});
+
+app.post('/api/admin/logout', requireAdmin, (req, res) => {
+  const token = req.headers.authorization.slice(7);
+  adminSessions.delete(token);
+  res.json({ success: true });
+});
+
+app.get('/api/admin/me', requireAdmin, (req, res) => {
+  res.json({ admin: req.admin });
+});
+
+app.get('/api/admin/users', requireAdmin, (req, res) => {
   const { search } = req.query;
   let filteredUsers = [...users];
   if (search) {
@@ -111,10 +177,12 @@ app.get('/api/admin/users', (req, res) => {
     );
   }
   res.json({
-    total: 12543,
-    active: 12292,
-    blocked: 251,
-    avgSpending: 840000,
+    total: users.length,
+    active: users.filter(u => u.status === 'active').length,
+    blocked: users.filter(u => u.status === 'blocked').length,
+    avgSpending: users.length
+      ? Math.round(users.reduce((sum, user) => sum + user.totalSpending, 0) / users.length)
+      : 0,
     users: filteredUsers
   });
 });
@@ -122,7 +190,74 @@ app.get('/api/admin/users', (req, res) => {
 // Mock Data for Orders
 let orders = [];
 
-app.post('/api/admin/users/:id/status', (req, res) => {
+app.post('/api/admin/users', requireAdmin, (req, res) => {
+  const { name, email, phone, avatar, ordersCount, totalSpending, status } = req.body;
+
+  if (!name || !email || !phone) {
+    return res.status(400).json({ error: 'Tên, email và số điện thoại là bắt buộc' });
+  }
+
+  const existed = users.some(user => user.email.toLowerCase() === email.toLowerCase());
+  if (existed) {
+    return res.status(409).json({ error: 'Email khách hàng đã tồn tại' });
+  }
+
+  const newUser = {
+    id: `CUS-${Date.now().toString().slice(-6)}`,
+    name,
+    email,
+    phone,
+    avatar: avatar || `https://i.pravatar.cc/150?u=${encodeURIComponent(email)}`,
+    ordersCount: Number(ordersCount || 0),
+    totalSpending: Number(totalSpending || 0),
+    status: status === 'blocked' ? 'blocked' : 'active'
+  };
+
+  users.unshift(newUser);
+  res.status(201).json({ success: true, user: newUser });
+});
+
+app.put('/api/admin/users/:id', requireAdmin, (req, res) => {
+  const { id } = req.params;
+  const user = users.find(u => u.id === id);
+
+  if (!user) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+
+  const { name, email, phone, avatar, ordersCount, totalSpending, status } = req.body;
+
+  if (email) {
+    const existed = users.some(u => u.id !== id && u.email.toLowerCase() === email.toLowerCase());
+    if (existed) {
+      return res.status(409).json({ error: 'Email khách hàng đã tồn tại' });
+    }
+  }
+
+  user.name = name ?? user.name;
+  user.email = email ?? user.email;
+  user.phone = phone ?? user.phone;
+  user.avatar = avatar ?? user.avatar;
+  user.ordersCount = ordersCount == null ? user.ordersCount : Number(ordersCount);
+  user.totalSpending = totalSpending == null ? user.totalSpending : Number(totalSpending);
+  user.status = status === 'blocked' ? 'blocked' : 'active';
+
+  res.json({ success: true, user });
+});
+
+app.delete('/api/admin/users/:id', requireAdmin, (req, res) => {
+  const { id } = req.params;
+  const beforeLength = users.length;
+  users = users.filter(user => user.id !== id);
+
+  if (users.length === beforeLength) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+
+  res.json({ success: true });
+});
+
+app.post('/api/admin/users/:id/status', requireAdmin, (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
   const user = users.find(u => u.id === id);
@@ -267,7 +402,25 @@ app.post('/api/orders/:id/cancel', (req, res) => {
   res.json({ success: true, order });
 });
 
+const webBuildPath = path.join(__dirname, '../build/web');
+app.use(express.static(webBuildPath));
+
+app.get('*', (req, res) => {
+  if (req.path.startsWith('/api')) {
+    return res.status(404).json({ error: 'API route not found' });
+  }
+
+  res.sendFile(path.join(webBuildPath, 'index.html'), error => {
+    if (error) {
+      res.status(404).send(
+        'Flutter web build not found. Run: flutter build web --release'
+      );
+    }
+  });
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+  console.log(`Admin web: http://localhost:${PORT}/#/admin/login`);
 });

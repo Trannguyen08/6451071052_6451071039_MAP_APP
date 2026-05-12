@@ -31,6 +31,43 @@ class AdminUser {
       status: json['status'],
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'email': email,
+      'phone': phone,
+      'avatar': avatar,
+      'ordersCount': ordersCount,
+      'totalSpending': totalSpending,
+      'status': status,
+    };
+  }
+}
+
+class AdminSession {
+  final String token;
+  final String id;
+  final String name;
+  final String email;
+
+  const AdminSession({
+    required this.token,
+    required this.id,
+    required this.name,
+    required this.email,
+  });
+
+  factory AdminSession.fromJson(Map<String, dynamic> json) {
+    final admin = json['admin'] as Map<String, dynamic>;
+    return AdminSession(
+      token: json['token'] as String,
+      id: admin['id'] as String,
+      name: admin['name'] as String,
+      email: admin['email'] as String,
+    );
+  }
 }
 
 class AdminDashboardData {

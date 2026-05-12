@@ -26,6 +26,28 @@ class ProductModel {
     );
   }
 
+  factory ProductModel.fromJson(Map<String, dynamic> json) {
+    return ProductModel(
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
+      description: json['description'] ?? '',
+      price: (json['price'] ?? 0).toDouble(),
+      imageUrl: json['imageUrl'],
+      categoryId: json['categoryId'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'price': price,
+      'imageUrl': imageUrl,
+      'categoryId': categoryId,
+    };
+  }
+
   Map<String, dynamic> toFirestore() {
     return {
       'name': name,
