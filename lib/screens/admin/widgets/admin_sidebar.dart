@@ -1,0 +1,104 @@
+import 'package:flutter/material.dart';
+
+class AdminSidebar extends StatelessWidget {
+  const AdminSidebar({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 260,
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(vertical: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 24),
+            child: Text(
+              'FoodHero',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFFE94E1B),
+              ),
+            ),
+          ),
+          const SizedBox(height: 32),
+          _buildUserInfo(),
+          const SizedBox(height: 32),
+          _buildMenuItem(Icons.dashboard_outlined, 'Dashboard'),
+          _buildMenuItem(Icons.shopping_bag_outlined, 'Orders'),
+          _buildMenuItem(Icons.restaurant_menu_outlined, 'Menu Items'),
+          _buildMenuItem(Icons.people_outline, 'Customers', isActive: true),
+          _buildMenuItem(Icons.bar_chart_outlined, 'Analytics'),
+          _buildMenuItem(Icons.settings_outlined, 'Settings'),
+          const Spacer(),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 24),
+            child: Text(
+              'Version 1.0.0',
+              style: TextStyle(color: Colors.grey, fontSize: 12),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUserInfo() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Row(
+        children: [
+          const CircleAvatar(
+            radius: 20,
+            backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Admin Panel',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                ),
+                Text(
+                  'Manage your kitchen',
+                  style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMenuItem(IconData icon, String title, {bool isActive = false}) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8, right: 16),
+      decoration: BoxDecoration(
+        color: isActive ? const Color(0xFFE94E1B) : Colors.transparent,
+        borderRadius: const BorderRadius.only(
+          topRight: Radius.circular(24),
+          bottomRight: Radius.circular(24),
+        ),
+      ),
+      child: ListTile(
+        leading: Icon(
+          icon,
+          color: isActive ? Colors.white : Colors.grey[600],
+        ),
+        title: Text(
+          title,
+          style: TextStyle(
+            color: isActive ? Colors.white : Colors.grey[800],
+            fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+        onTap: () {},
+      ),
+    );
+  }
+}
