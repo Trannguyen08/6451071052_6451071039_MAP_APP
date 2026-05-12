@@ -22,12 +22,12 @@ class _MainScreenState extends State<MainScreen>
   late AnimationController _animController;
   late Animation<double> _scaleAnim;
 
-  final List<Widget> _screens = const [
+  final List<Widget> _screens = [
     HomeScreen(),
-    WishlistScreen(),
-    CartScreen(),
-    OrderHistoryScreen(),
-    SettingsScreen(),
+    const WishlistScreen(),
+    const CartScreen(),
+    const OrderHistoryScreen(),
+    const SettingsScreen(),
   ];
 
   @override
