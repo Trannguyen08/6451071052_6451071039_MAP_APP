@@ -3,7 +3,7 @@ class ProductModel {
   final String name;
   final String description;
   final double price;
-  final String? imageUrl;
+  final String imageUrl;
   final String categoryId;
 
   ProductModel({
@@ -11,17 +11,20 @@ class ProductModel {
     required this.name,
     required this.description,
     required this.price,
-    this.imageUrl,
+    required this.imageUrl,
     required this.categoryId,
   });
 
-  factory ProductModel.fromFirestore(Map<String, dynamic> data, String id) {
+  factory ProductModel.fromFirestore(
+    Map<String, dynamic> data,
+    String id,
+  ) {
     return ProductModel(
       id: id,
       name: data['name'] ?? '',
       description: data['description'] ?? '',
       price: (data['price'] ?? 0).toDouble(),
-      imageUrl: data['imageUrl'],
+      imageUrl: data['imageUrl'] ?? '',
       categoryId: data['categoryId'] ?? '',
     );
   }

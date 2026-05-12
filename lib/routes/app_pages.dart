@@ -8,6 +8,8 @@ import '../screens/order/order_history_screen.dart';
 import '../screens/cart/cart_screen.dart';
 import '../screens/admin/user_management_screen.dart';
 import '../screens/payment/payment_success_screen.dart';
+import '../screens/product/product_detail_screen.dart';
+import '../bindings/home_binding.dart';
 import 'app_routes.dart';
 
 class AppPages {
@@ -19,7 +21,8 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.home,
-      page: () => const HomeScreen(),
+      page: () =>  HomeScreen(),
+      binding: HomeBinding(),
     ),
     GetPage(
       name: AppRoutes.login,
@@ -48,8 +51,12 @@ class AppPages {
     GetPage(
       name: AppRoutes.paymentSuccess,
       page: () => const PaymentSuccessScreen(),
-      name: AppRoutes.home,
-      page: () => const HomeScreen(),
+      // name: AppRoutes.home,
+      // page: () => const HomeScreen(),
     ),
+    GetPage(
+    name: AppRoutes.productDetail,
+    page: () => ProductDetailScreen(),
+   ),
   ];
 }
