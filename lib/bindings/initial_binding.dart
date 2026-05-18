@@ -8,5 +8,6 @@ class InitialBinding extends Bindings {
   void dependencies() {
     Get.put(FirebaseService(), permanent: true);
     Get.put(AuthController(), permanent: true);
+    // Note: SettingsController is registered in main() before runApp
   }
 }

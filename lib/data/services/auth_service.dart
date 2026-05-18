@@ -48,7 +48,8 @@ class AuthService {
       ..from = Address(dotenv.get('EMAIL_HOST_USER'), 'FoodHero App')
       ..recipients.add(email)
       ..subject = 'Mã xác thực tài khoản FoodHero'
-      ..html = '''
+      ..html =
+          '''
         <h3>Chào mừng bạn đến với FoodHero!</h3>
         <p>Mã xác thực (OTP) của bạn là: <strong>$otp</strong></p>
         <p>Mã này có hiệu lực trong 5 phút.</p>
@@ -61,6 +62,7 @@ class AuthService {
       throw 'Không thể gửi email xác thực. Vui lòng kiểm tra lại địa chỉ email.';
     }
   }
+
   // 4. Register
   Future<void> register({
     required String email,
@@ -88,7 +90,7 @@ class AuthService {
 
     await _users.add(newUser.toFirestore());
     await _sendOTPEmail(email, otp);
-    
+
     throw 'VERIFICATION_REQUIRED';
   }
 
@@ -115,7 +117,10 @@ class AuthService {
     if (query.docs.isEmpty) throw 'Người dùng không tồn tại';
 
     var doc = query.docs.first;
-    var user = UserModel.fromFirestore(doc.data() as Map<String, dynamic>, doc.id);
+    var user = UserModel.fromFirestore(
+      doc.data() as Map<String, dynamic>,
+      doc.id,
+    );
 
     if (user.otp != otp) throw 'Mã OTP không chính xác';
     if (user.otpExpiry!.isBefore(DateTime.now())) throw 'Mã OTP đã hết hạn';
@@ -136,6 +141,7 @@ class AuthService {
       'id': user.id,
       'email': user.email,
       'name': user.fullName,
+      'avatar': user.avatar,
     });
 
     final accessToken = accessJwt.sign(
@@ -149,26 +155,36 @@ class AuthService {
       expiresIn: const Duration(days: 30),
     );
 
-    return {
-      'accessToken': accessToken,
-      'refreshToken': refreshToken,
-    };
+    return {'accessToken': accessToken, 'refreshToken': refreshToken};
   }
 
   // 8. Refresh Token
   Future<Map<String, String>> refresh(String refreshToken) async {
     try {
-      final jwt = JWT.verify(refreshToken, SecretKey(dotenv.get('JWT_REFRESH_SECRET')));
+      final jwt = JWT.verify(
+        refreshToken,
+        SecretKey(dotenv.get('JWT_REFRESH_SECRET')),
+      );
       final userId = jwt.payload['id'];
 
       var doc = await _users.doc(userId).get();
       if (!doc.exists) throw 'User not found';
 
-      final user = UserModel.fromFirestore(doc.data() as Map<String, dynamic>, doc.id);
+      final user = UserModel.fromFirestore(
+        doc.data() as Map<String, dynamic>,
+        doc.id,
+      );
       return _generateTokens(user);
     } catch (e) {
       throw 'Refresh token expired or invalid';
     }
+  }
+
+  Future<UserModel?> getUserById(String userId) async {
+    final doc = await _users.doc(userId).get();
+    if (!doc.exists) return null;
+
+    return UserModel.fromFirestore(doc.data() as Map<String, dynamic>, doc.id);
   }
 
   // 9. Google Login
@@ -177,10 +193,12 @@ class AuthService {
       print('🔵 Bắt đầu Google Sign In...');
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       print('🔵 Google User: ${googleUser?.email}');
-      
+
       if (googleUser == null) return null;
 
-      var query = await _users.where('email', isEqualTo: googleUser.email).get();
+      var query = await _users
+          .where('email', isEqualTo: googleUser.email)
+          .get();
 
       UserModel user;
       if (query.docs.isEmpty) {
@@ -188,6 +206,7 @@ class AuthService {
         final newUser = UserModel(
           email: googleUser.email,
           fullName: googleUser.displayName,
+          avatar: googleUser.photoUrl,
           isVerified: true,
         );
         var docRef = await _users.add(newUser.toFirestore());
@@ -195,10 +214,16 @@ class AuthService {
       } else {
         // User đã tồn tại
         var doc = query.docs.first;
-        user = UserModel.fromFirestore(
-          doc.data() as Map<String, dynamic>,
-          doc.id,
-        );
+        final userData = doc.data() as Map<String, dynamic>;
+        final googleAvatar = googleUser.photoUrl ?? '';
+
+        if ((userData['avatar'] ?? '').toString().isEmpty &&
+            googleAvatar.isNotEmpty) {
+          await _users.doc(doc.id).update({'avatar': googleAvatar});
+          userData['avatar'] = googleAvatar;
+        }
+
+        user = UserModel.fromFirestore(userData, doc.id);
       }
 
       return _generateTokens(user);

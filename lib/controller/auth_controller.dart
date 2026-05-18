@@ -49,7 +49,7 @@ class AuthController extends GetxController {
       final tokens = await _authService.login(email, password);
       if (tokens != null) {
         _saveTokens(tokens);
-        Get.offAllNamed(AppRoutes.home);
+        Get.offAllNamed(AppRoutes.main);
       }
     } catch (e) {
       if (e.toString() == 'VERIFICATION_REQUIRED') {
@@ -69,7 +69,7 @@ class AuthController extends GetxController {
       final tokens = await _authService.googleLogin();
       if (tokens != null) {
         _saveTokens(tokens);
-        Get.offAllNamed(AppRoutes.home);
+        Get.offAllNamed(AppRoutes.main);
       }
       // tokens == null nghĩa là user bấm huỷ, không cần báo lỗi
     } catch (e) {
@@ -110,7 +110,7 @@ class AuthController extends GetxController {
       isLoading.value = true;
       final tokens = await _authService.verifyOTP(email, otp);
       _saveTokens(tokens);
-      Get.offAllNamed(AppRoutes.home);
+      Get.offAllNamed(AppRoutes.main);
       Get.snackbar('Thành công', 'Đăng ký và xác thực tài khoản thành công!');
     } catch (e) {
       Get.snackbar('Lỗi', e.toString());

@@ -13,7 +13,7 @@
 migrate_working_dir/
 
 build/
-
+node_modules/
 
 # IntelliJ related
 *.iml
@@ -50,4 +50,6 @@ app.*.map.json
 
 # Env
 env
+backend/serviceAccountKey.json
+backend/*service-account*.json
 

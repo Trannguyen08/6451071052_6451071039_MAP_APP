@@ -19,10 +19,10 @@ class CartItem {
     return CartItem(
       id: json['id'],
       name: json['name'],
-      options: json['options'],
-      price: json['price'].toDouble(),
-      quantity: json['quantity'],
-      image: json['image'],
+      options: json['options'] ?? '',
+      price: (json['price'] ?? 0).toDouble(),
+      quantity: json['quantity'] ?? 0,
+      image: json['image'] ?? '',
     );
   }
 
@@ -61,11 +61,11 @@ class CartData {
     return CartData(
       items: (json['items'] as List).map((e) => CartItem.fromJson(e)).toList(),
       deliveryInfo: DeliveryInfo.fromJson(json['deliveryInfo']),
-      paymentMethod: json['paymentMethod'],
-      subtotal: json['subtotal'].toDouble(),
-      shippingFee: json['shippingFee'].toDouble(),
-      discount: json['discount'].toDouble(),
-      total: json['total'].toDouble(),
+      paymentMethod: json['paymentMethod'] ?? 'cash',
+      subtotal: (json['subtotal'] ?? 0).toDouble(),
+      shippingFee: (json['shippingFee'] ?? 0).toDouble(),
+      discount: (json['discount'] ?? 0).toDouble(),
+      total: (json['total'] ?? 0).toDouble(),
     );
   }
 }

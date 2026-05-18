@@ -14,17 +14,14 @@ class CartScreen extends StatelessWidget {
     final controller = Get.put(CartController());
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF8F5),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Get.back(),
-        ),
+        automaticallyImplyLeading: false,
         title: const Text(
           'Giỏ hàng của bạn',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         actions: [
@@ -33,7 +30,7 @@ class CartScreen extends StatelessWidget {
             child: CircleAvatar(
               backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'),
             ),
-          )
+          ),
         ],
       ),
       body: Obx(() {
@@ -59,20 +56,26 @@ class CartScreen extends StatelessWidget {
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFFFEBE3),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       '${cart.items.length} Món',
-                      style: const TextStyle(color: Color(0xFFE94E1B), fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        color: Color(0xFFE94E1B),
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
-              ...cart.items.map((item) => CartItemTile(item: item)).toList(),
+              ...cart.items.map((item) => CartItemTile(item: item)),
               const SizedBox(height: 24),
               const DeliveryInfoSection(),
               const SizedBox(height: 24),
@@ -94,7 +97,11 @@ class CartScreen extends StatelessWidget {
                   ),
                   child: const Text(
                     'Thanh toán ngay',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),

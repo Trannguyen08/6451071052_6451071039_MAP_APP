@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+import '../../../controller/admin_controller.dart';
+import '../../../routes/app_routes.dart';
 
 class AdminSidebar extends StatelessWidget {
   const AdminSidebar({super.key});
@@ -26,12 +30,31 @@ class AdminSidebar extends StatelessWidget {
           const SizedBox(height: 32),
           _buildUserInfo(),
           const SizedBox(height: 32),
-          _buildMenuItem(Icons.dashboard_outlined, 'Dashboard'),
-          _buildMenuItem(Icons.shopping_bag_outlined, 'Orders'),
-          _buildMenuItem(Icons.restaurant_menu_outlined, 'Menu Items'),
-          _buildMenuItem(Icons.people_outline, 'Customers', isActive: true),
-          _buildMenuItem(Icons.bar_chart_outlined, 'Analytics'),
-          _buildMenuItem(Icons.settings_outlined, 'Settings'),
+          _buildMenuItem(
+            Icons.dashboard_outlined,
+            'Dashboard',
+            route: AppRoutes.adminDashboard,
+          ),
+          _buildMenuItem(
+            Icons.shopping_bag_outlined,
+            'Đơn hàng',
+            route: AppRoutes.adminOrders,
+          ),
+          _buildMenuItem(
+            Icons.category_outlined,
+            'Danh mục',
+            route: AppRoutes.adminCategories,
+          ),
+          _buildMenuItem(
+            Icons.restaurant_menu_outlined,
+            'Sản phẩm',
+            route: AppRoutes.adminProducts,
+          ),
+          _buildMenuItem(
+            Icons.people_outline,
+            'Khách hàng',
+            route: AppRoutes.adminUsers,
+          ),
           const Spacer(),
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 24),
@@ -46,25 +69,36 @@ class AdminSidebar extends StatelessWidget {
   }
 
   Widget _buildUserInfo() {
+    final controller = Get.isRegistered<AdminController>()
+        ? Get.find<AdminController>()
+        : Get.put(AdminController());
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Row(
         children: [
           const CircleAvatar(
             radius: 20,
-            backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'),
+            backgroundColor: Color(0xFFFFD6CC),
+            child: Icon(Icons.admin_panel_settings, color: Color(0xFFE94E1B)),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Admin Panel',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                Obx(
+                  () => Text(
+                    controller.adminName.value,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
                 Text(
-                  'Manage your kitchen',
+                  'Quản lý cửa hàng',
                   style: TextStyle(color: Colors.grey[600], fontSize: 12),
                 ),
               ],
@@ -75,7 +109,9 @@ class AdminSidebar extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuItem(IconData icon, String title, {bool isActive = false}) {
+  Widget _buildMenuItem(IconData icon, String title, {String? route}) {
+    final isActive = route != null && Get.currentRoute == route;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8, right: 16),
       decoration: BoxDecoration(
@@ -86,10 +122,7 @@ class AdminSidebar extends StatelessWidget {
         ),
       ),
       child: ListTile(
-        leading: Icon(
-          icon,
-          color: isActive ? Colors.white : Colors.grey[600],
-        ),
+        leading: Icon(icon, color: isActive ? Colors.white : Colors.grey[600]),
         title: Text(
           title,
           style: TextStyle(
@@ -97,7 +130,7 @@ class AdminSidebar extends StatelessWidget {
             fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
           ),
         ),
-        onTap: () {},
+        onTap: route == null || isActive ? null : () => Get.offNamed(route),
       ),
     );
   }

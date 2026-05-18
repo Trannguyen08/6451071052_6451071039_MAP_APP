@@ -22,16 +22,31 @@ class OrderModel {
   factory OrderModel.fromFirestore(Map<String, dynamic> data, String id) {
     return OrderModel(
       id: id,
-      orderCode: data['orderCode'] ?? '#FH-${id.substring(0, 4).toUpperCase()}',
+      orderCode:
+          data['orderCode'] ?? '#FH-${id.substring(0, 4).toUpperCase()}',
       userId: data['userId'] ?? '',
       items: (data['items'] as List<dynamic>?)
               ?.map((item) => OrderItem.fromMap(item))
               .toList() ??
           [],
-      totalAmount: (data['totalAmount'] ?? 0).toDouble(),
-      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      totalAmount: _toDouble(data['totalAmount'] ?? data['total']),
+      createdAt: _parseDate(data['createdAt']),
       status: data['status'] ?? 'pending',
     );
+  }
+
+  static double _toDouble(dynamic value) {
+    if (value is num) return value.toDouble();
+    return double.tryParse(value?.toString() ?? '') ?? 0;
+  }
+
+  static DateTime _parseDate(dynamic value) {
+    if (value == null) return DateTime.now();
+    if (value is Timestamp) return value.toDate();
+    if (value is DateTime) return value;
+    if (value is int) return DateTime.fromMillisecondsSinceEpoch(value);
+    if (value is String) return DateTime.tryParse(value) ?? DateTime.now();
+    return DateTime.now();
   }
 
   Map<String, dynamic> toFirestore() {
@@ -65,12 +80,12 @@ class OrderItem {
 
   factory OrderItem.fromMap(Map<String, dynamic> data) {
     return OrderItem(
-      productId: data['productId'] ?? '',
-      productName: data['productName'] ?? '',
-      imageUrl: data['imageUrl'] ?? '',
-      details: data['details'] ?? '',
-      quantity: data['quantity'] ?? 0,
-      price: (data['price'] ?? 0).toDouble(),
+      productId: data['productId'] ?? data['id'] ?? '',
+      productName: data['productName'] ?? data['name'] ?? '',
+      imageUrl: data['imageUrl'] ?? data['image'] ?? '',
+      details: data['details'] ?? data['options'] ?? '',
+      quantity: (data['quantity'] as num?)?.toInt() ?? 0,
+      price: OrderModel._toDouble(data['price']),
     );
   }
 
