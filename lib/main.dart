@@ -40,9 +40,14 @@ class MyApp extends StatelessWidget {
         darkTheme: settings.darkTheme,
         themeMode: settings.themeMode.value,
         initialBinding: InitialBinding(),
-        initialRoute: AppRoutes.home,
+        initialRoute: _initialRoute,
         getPages: AppPages.pages,
       ),
     );
+  }
+
+  String get _initialRoute {
+    final accessToken = GetStorage().read<String>('accessToken') ?? '';
+    return accessToken.isEmpty ? AppRoutes.login : AppRoutes.home;
   }
 }

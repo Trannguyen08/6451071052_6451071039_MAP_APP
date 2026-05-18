@@ -20,7 +20,7 @@ class CartItemTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -35,6 +35,14 @@ class CartItemTile extends StatelessWidget {
               width: 80,
               height: 80,
               fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  width: 80,
+                  height: 80,
+                  color: const Color(0xFFFFF1EB),
+                  child: const Icon(Icons.fastfood, color: Color(0xFFE94E1B)),
+                );
+              },
             ),
           ),
           const SizedBox(width: 16),
@@ -44,7 +52,10 @@ class CartItemTile extends StatelessWidget {
               children: [
                 Text(
                   item.name,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
                 ),
                 Text(
                   item.options,
@@ -70,16 +81,26 @@ class CartItemTile extends StatelessWidget {
             child: Row(
               children: [
                 IconButton(
-                  icon: const Icon(Icons.remove, size: 18, color: Color(0xFFE94E1B)),
-                  onPressed: () => controller.updateQuantity(item.id, item.quantity - 1),
+                  icon: const Icon(
+                    Icons.remove,
+                    size: 18,
+                    color: Color(0xFFE94E1B),
+                  ),
+                  onPressed: () =>
+                      controller.updateQuantity(item.id, item.quantity - 1),
                 ),
                 Text(
                   '${item.quantity}',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.add, size: 18, color: Color(0xFFE94E1B)),
-                  onPressed: () => controller.updateQuantity(item.id, item.quantity + 1),
+                  icon: const Icon(
+                    Icons.add,
+                    size: 18,
+                    color: Color(0xFFE94E1B),
+                  ),
+                  onPressed: () =>
+                      controller.updateQuantity(item.id, item.quantity + 1),
                 ),
               ],
             ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../cart/cart_screen.dart';
 import '../home/home_screen.dart';
+import '../notification/notification_screen.dart';
 import '../order/order_history_screen.dart';
 import '../settings/settings_screen.dart';
 import '../wishlist/wishlist_screen.dart';
@@ -23,9 +24,10 @@ class _MainScreenState extends State<MainScreen>
   late Animation<double> _scaleAnim;
 
   final List<Widget> _screens = [
-    HomeScreen(),
+    const HomeScreen(),
     const WishlistScreen(),
     const CartScreen(),
+    NotificationScreen(),
     const OrderHistoryScreen(),
     const SettingsScreen(),
   ];

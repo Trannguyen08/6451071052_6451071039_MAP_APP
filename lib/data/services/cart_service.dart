@@ -1,8 +1,21 @@
 import 'package:get/get.dart';
 import '../models/cart_model.dart';
+import '../models/product_model.dart';
 
 class CartService extends GetConnect {
-  final String baseUrlStr = 'http://10.0.2.2:5000/api'; // 10.0.2.2 for Android Emulator
+  late final String baseUrlStr = _resolveBaseUrl();
+
+  String _resolveBaseUrl() {
+    if (!GetPlatform.isWeb) {
+      return 'http://10.0.2.2:5000/api';
+    }
+
+    final uri = Uri.base;
+    final isServedByBackend =
+        (uri.host == 'localhost' || uri.host == '127.0.0.1') &&
+        uri.port == 5000;
+    return isServedByBackend ? '/api' : 'http://localhost:5000/api';
+  }
 
   Future<CartData> getCart() async {
     final response = await get('$baseUrlStr/cart');
@@ -23,6 +36,26 @@ class CartService extends GetConnect {
     return CartData.fromJson(response.body);
   }
 
+  Future<CartData> addProduct(
+    ProductModel product, {
+    int quantity = 1,
+    bool replace = false,
+  }) async {
+    final response = await post('$baseUrlStr/cart/items/add', {
+      'id': product.id,
+      'name': product.name,
+      'options': product.description,
+      'price': product.price,
+      'quantity': quantity,
+      'image': product.imageUrl,
+      'replace': replace,
+    });
+    if (response.status.hasError) {
+      throw response.statusText ?? 'Loi them san pham vao gio hang';
+    }
+    return CartData.fromJson(response.body);
+  }
+
   Future<CartData> updateDeliveryInfo(String name, String phone) async {
     final response = await post('$baseUrlStr/cart/delivery', {
       'name': name,
@@ -35,9 +68,7 @@ class CartService extends GetConnect {
   }
 
   Future<CartData> updatePaymentMethod(String method) async {
-    final response = await post('$baseUrlStr/cart/payment', {
-      'method': method,
-    });
+    final response = await post('$baseUrlStr/cart/payment', {'method': method});
     if (response.status.hasError) {
       throw response.statusText ?? 'Lỗi cập nhật phương thức';
     }

@@ -2,14 +2,31 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../controller/home_controller.dart';
-import '../product/product_detail_screen.dart';
+import '../../controller/wishlist_controller.dart';
+import '../../routes/app_routes.dart';
 
-class HomeScreen extends StatelessWidget {
-  HomeScreen({super.key});
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
 
-  final HomeController controller = Get.isRegistered<HomeController>()
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  late final HomeController controller = Get.isRegistered<HomeController>()
       ? Get.find<HomeController>()
       : Get.put(HomeController());
+  late final WishlistController wishlistController =
+      Get.isRegistered<WishlistController>()
+      ? Get.find<WishlistController>()
+      : Get.put(WishlistController());
+  final TextEditingController searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,9 +40,11 @@ class HomeScreen extends StatelessWidget {
             children: [
               _buildHeader(),
               const SizedBox(height: 20),
-              _buildUserNotice(),
+              _buildGreeting(),
               const SizedBox(height: 25),
               _buildSearch(),
+              const SizedBox(height: 30),
+              _buildPromoBanner(),
               const SizedBox(height: 30),
               const Text(
                 'Danh mục',
@@ -33,8 +52,6 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               _buildCategories(),
-              const SizedBox(height: 30),
-              _buildPromoBanner(),
               const SizedBox(height: 30),
               _buildProductTitle(),
               const SizedBox(height: 20),
@@ -65,37 +82,43 @@ class HomeScreen extends StatelessWidget {
             Text('Đặt món nhanh chóng', style: TextStyle(color: Colors.grey)),
           ],
         ),
-        Stack(
-          children: [
-            const CircleAvatar(
-              radius: 24,
-              backgroundColor: Colors.orange,
-              child: Icon(Icons.person, color: Colors.white),
-            ),
-            Positioned(
-              right: 0,
-              top: 0,
-              child: Obx(
-                () => Container(
-                  padding: const EdgeInsets.all(5),
-                  decoration: const BoxDecoration(
-                    color: Colors.red,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Text(
-                    controller.cartCount.value.toString(),
-                    style: const TextStyle(color: Colors.white, fontSize: 10),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
+        Obx(() => _buildUserAvatar()),
       ],
     );
   }
 
-  Widget _buildUserNotice() {
+  Widget _buildUserAvatar() {
+    final avatarUrl = controller.userAvatar.value.trim();
+    final displayName = controller.userName.value.trim();
+    final initial = displayName.isNotEmpty ? displayName[0].toUpperCase() : '';
+
+    if (avatarUrl.isNotEmpty) {
+      return CircleAvatar(
+        radius: 24,
+        backgroundColor: Colors.orange,
+        backgroundImage: NetworkImage(avatarUrl),
+        onBackgroundImageError: (_, _) {},
+        child: const SizedBox.shrink(),
+      );
+    }
+
+    return CircleAvatar(
+      radius: 24,
+      backgroundColor: Colors.orange,
+      child: initial.isNotEmpty
+          ? Text(
+              initial,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
+            )
+          : const Icon(Icons.person, color: Colors.white),
+    );
+  }
+
+  Widget _buildGreeting() {
     return Obx(
       () => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -104,26 +127,6 @@ class HomeScreen extends StatelessWidget {
             'Xin chào, ${controller.userName.value}',
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
           ),
-          const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              color: Colors.blue.shade50,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.notifications, color: Colors.blue),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    controller.notificationText.value,
-                    style: const TextStyle(color: Colors.blue),
-                  ),
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );
@@ -131,6 +134,7 @@ class HomeScreen extends StatelessWidget {
 
   Widget _buildSearch() {
     return TextField(
+      controller: searchController,
       onChanged: controller.searchProduct,
       decoration: InputDecoration(
         hintText: 'Tìm món ăn...',
@@ -151,27 +155,49 @@ class HomeScreen extends StatelessWidget {
       child: Obx(
         () => ListView.builder(
           scrollDirection: Axis.horizontal,
-          itemCount: controller.categories.length,
+          itemCount: controller.categories.length + 1,
           itemBuilder: (context, index) {
-            final category = controller.categories[index];
             final isSelected = controller.selectedCategoryIndex.value == index;
+            final isAll = index == 0;
+            final category = isAll ? null : controller.categories[index - 1];
 
             return GestureDetector(
-              onTap: () => controller.selectCategory(index),
+              onTap: () {
+                searchController.clear();
+                controller.selectCategory(index);
+              },
               child: Container(
                 width: 100,
                 margin: const EdgeInsets.only(right: 12),
                 decoration: BoxDecoration(
-                  color: isSelected ? Colors.orange : Colors.white,
+                  color: isSelected ? const Color(0xFFFF6B35) : Colors.white,
                   borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isSelected
+                        ? const Color(0xFFFF6B35)
+                        : const Color(0xFFEFE7E4),
+                    width: isSelected ? 2 : 1,
+                  ),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: Colors.orange.withValues(alpha: 0.28),
+                            blurRadius: 14,
+                            offset: const Offset(0, 5),
+                          ),
+                        ]
+                      : const [],
                 ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(category.icon, style: const TextStyle(fontSize: 28)),
+                    Text(
+                      isAll ? '🍽️' : category!.icon,
+                      style: const TextStyle(fontSize: 28),
+                    ),
                     const SizedBox(height: 8),
                     Text(
-                      category.name,
+                      isAll ? 'Tất cả' : category!.name,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
@@ -252,82 +278,161 @@ class HomeScreen extends StatelessWidget {
           crossAxisCount: 2,
           mainAxisSpacing: 20,
           crossAxisSpacing: 20,
-          childAspectRatio: 0.62,
+          childAspectRatio: 0.48,
         ),
         itemBuilder: (context, index) {
           final product = controller.filteredProducts[index];
 
-          return GestureDetector(
-            onTap: () =>
-                Get.to(() => ProductDetailScreen(), arguments: product),
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(25),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: Image.network(
-                      product.imageUrl,
-                      height: 120,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          height: 120,
-                          color: Colors.grey.shade300,
-                          child: const Icon(Icons.fastfood, size: 50),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 15),
-                  Text(
-                    product.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    product.description,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Colors.grey),
-                  ),
-                  const Spacer(),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '${product.price.toInt()}đ',
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.red,
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () => controller.addToCart(product),
-                        child: Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: const BoxDecoration(
-                            color: Colors.orange,
-                            shape: BoxShape.circle,
+          return Material(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(25),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: () =>
+                  Get.toNamed(AppRoutes.productDetail, arguments: product),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(25),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Stack(
+                      children: [
+                        Hero(
+                          tag: product.id,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(20),
+                            child: Image.network(
+                              product.imageUrl,
+                              height: 120,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  height: 120,
+                                  color: Colors.grey.shade300,
+                                  child: const Icon(Icons.fastfood, size: 50),
+                                );
+                              },
+                            ),
                           ),
-                          child: const Icon(Icons.add, color: Colors.white),
+                        ),
+                        Positioned(
+                          right: 8,
+                          top: 8,
+                          child: Obx(
+                            () => InkWell(
+                              onTap: () =>
+                                  wishlistController.toggleWishlist(product),
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: const BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  wishlistController.isFavorite(product)
+                                      ? Icons.favorite
+                                      : Icons.favorite_border,
+                                  color: const Color(0xFFE94E1B),
+                                  size: 18,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Obx(
+                      () => Container(
+                        height: 34,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFF1EB),
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            IconButton(
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              onPressed: () =>
+                                  controller.decreaseQuantity(product),
+                              icon: const Icon(
+                                Icons.remove,
+                                size: 18,
+                                color: Color(0xFFE94E1B),
+                              ),
+                            ),
+                            Text(
+                              '${controller.quantityFor(product)}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            IconButton(
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              onPressed: () =>
+                                  controller.increaseQuantity(product),
+                              icon: const Icon(
+                                Icons.add,
+                                size: 18,
+                                color: Color(0xFFE94E1B),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      product.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      product.description,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(color: Colors.grey),
+                    ),
+                    const Spacer(),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '${product.price.toInt()}đ',
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.red,
+                          ),
+                        ),
+                        InkWell(
+                          onTap: () => controller.addToCart(product),
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: const BoxDecoration(
+                              color: Colors.orange,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.add, color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           );

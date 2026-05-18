@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'firebase_service.dart';
 
 class SeedService {
@@ -6,31 +5,11 @@ class SeedService {
 
   Future<void> seedCategories() async {
     final categories = [
-      {
-        'id': 'burger',
-        'name': 'Burger',
-        'icon': '🍔',
-      },
-      {
-        'id': 'pizza',
-        'name': 'Pizza',
-        'icon': '🍕',
-      },
-      {
-        'id': 'chicken',
-        'name': 'Chicken',
-        'icon': '🍗',
-      },
-      {
-        'id': 'drinks',
-        'name': 'Drinks',
-        'icon': '🥤',
-      },
-      {
-        'id': 'salad',
-        'name': 'Salad',
-        'icon': '🥗',
-      },
+      {'id': 'burger', 'name': 'Burger', 'icon': '🍔'},
+      {'id': 'pizza', 'name': 'Pizza', 'icon': '🍕'},
+      {'id': 'chicken', 'name': 'Chicken', 'icon': '🍗'},
+      {'id': 'drinks', 'name': 'Drinks', 'icon': '🥤'},
+      {'id': 'salad', 'name': 'Salad', 'icon': '🥗'},
     ];
 
     for (var category in categories) {
@@ -47,6 +26,7 @@ class SeedService {
         'imageUrl':
             'https://images.unsplash.com/photo-1568901346375-23c9450c58cd',
         'categoryId': 'burger',
+        'brand': 'FoodHero Burger',
       },
       {
         'name': 'Pizza Hải Sản',
@@ -55,14 +35,15 @@ class SeedService {
         'imageUrl':
             'https://images.unsplash.com/photo-1513104890138-7c749659a591',
         'categoryId': 'pizza',
+        'brand': 'Pizza House',
       },
       {
         'name': 'Gà Rán Giòn',
         'description': 'Gà cay giòn rụm',
         'price': 45000,
-        'imageUrl':
-            'https://images.unsplash.com/photo-1562967916-eb82221dfb92',
+        'imageUrl': 'https://images.unsplash.com/photo-1562967916-eb82221dfb92',
         'categoryId': 'chicken',
+        'brand': 'Crispy Chicken',
       },
       {
         'name': 'Coca Cola',
@@ -71,6 +52,7 @@ class SeedService {
         'imageUrl':
             'https://images.unsplash.com/photo-1622483767028-3f66f32aef97',
         'categoryId': 'drinks',
+        'brand': 'Coca-Cola',
       },
     ];
 

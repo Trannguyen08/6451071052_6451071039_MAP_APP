@@ -1,11 +1,12 @@
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../data/models/cart_model.dart';
+import '../data/models/product_model.dart';
 import '../data/services/cart_service.dart';
 
 class CartController extends GetxController {
   final CartService _cartService = CartService();
-  
+
   var cartData = Rxn<CartData>();
   var isLoading = false.obs;
 
@@ -35,6 +36,31 @@ class CartController extends GetxController {
     }
   }
 
+  Future<void> addProduct(
+    ProductModel product, {
+    int quantity = 1,
+    bool replace = false,
+  }) async {
+    try {
+      isLoading.value = true;
+      cartData.value = await _cartService.addProduct(
+        product,
+        quantity: quantity,
+        replace: replace,
+      );
+      Get.snackbar(
+        'Gio hang',
+        replace
+            ? 'Da chuan bi don hang voi ${product.name}'
+            : 'Da them ${product.name} vao gio hang',
+      );
+    } catch (e) {
+      Get.snackbar('Loi', 'Khong the them vao gio hang: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   Future<void> updateDeliveryInfo(String name, String phone) async {
     try {
       cartData.value = await _cartService.updateDeliveryInfo(name, phone);
@@ -55,7 +81,7 @@ class CartController extends GetxController {
     try {
       isLoading.value = true;
       final response = await _cartService.checkout();
-      
+
       if (response['success'] == true) {
         if (response['online'] == true) {
           final checkoutUrl = response['checkoutUrl'];

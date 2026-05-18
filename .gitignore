@@ -50,4 +50,6 @@ app.*.map.json
 
 # Env
 env
+backend/serviceAccountKey.json
+backend/*service-account*.json
 

@@ -1,12 +1,14 @@
+import 'dart:convert';
+
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 import '../data/models/order_model.dart';
 import '../data/services/order_service.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'auth_controller.dart';
 
 class OrderController extends GetxController {
   final OrderService _orderService = OrderService();
-  final GetStorage _storage = GetStorage();
 
   final RxList<OrderModel> orders = <OrderModel>[].obs;
   final RxList<OrderModel> filteredOrders = <OrderModel>[].obs;
@@ -29,18 +31,31 @@ class OrderController extends GetxController {
   Future<void> fetchOrders() async {
     try {
       isLoading.value = true;
-      // Trong thực tế, lấy userId từ token hoặc storage
-      // Ở đây giả định chúng ta có userId (có thể lấy từ AuthController)
-      // Để đơn giản cho việc test, tôi sẽ dùng một ID mẫu nếu không tìm thấy trong storage
-      final userId = _storage.read('userId') ?? 'sample_user_id';
-      
-      final fetchedOrders = await _orderService.getOrders(userId);
-      orders.value = fetchedOrders;
+      final fetchedOrders = await _orderService.getOrders(_currentUserId());
+      orders.assignAll(fetchedOrders);
       _applyFilter();
     } catch (e) {
-      print('Error in OrderController: $e');
+      Get.snackbar('Lỗi', 'Không thể tải lịch sử đơn hàng: $e');
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  String _currentUserId() {
+    if (!Get.isRegistered<AuthController>()) return '';
+
+    final token = Get.find<AuthController>().accessToken.value;
+    final parts = token.split('.');
+    if (parts.length != 3) return '';
+
+    try {
+      final payloadJson = utf8.decode(
+        base64Url.decode(base64Url.normalize(parts[1])),
+      );
+      final payload = jsonDecode(payloadJson) as Map<String, dynamic>;
+      return (payload['id'] ?? '').toString();
+    } catch (_) {
+      return '';
     }
   }
 
@@ -51,24 +66,25 @@ class OrderController extends GetxController {
 
   void _applyFilter() {
     if (selectedStatus.value == 'Tất cả') {
-      filteredOrders.value = orders;
-    } else {
-      String statusKey = '';
-      switch (selectedStatus.value) {
-        case 'Đang xử lý':
-          statusKey = 'processing';
-          break;
-        case 'Đã giao':
-          statusKey = 'delivered';
-          break;
-        case 'Đã hủy':
-          statusKey = 'cancelled';
-          break;
-        default:
-          statusKey = 'pending';
-      }
-      filteredOrders.value = orders.where((o) => o.status == statusKey).toList();
+      filteredOrders.assignAll(orders);
+      return;
     }
+
+    String statusKey = '';
+    switch (selectedStatus.value) {
+      case 'Đang xử lý':
+        statusKey = 'processing';
+        break;
+      case 'Đã giao':
+        statusKey = 'delivered';
+        break;
+      case 'Đã hủy':
+        statusKey = 'cancelled';
+        break;
+      default:
+        statusKey = 'pending';
+    }
+    filteredOrders.assignAll(orders.where((o) => o.status == statusKey));
   }
 
   String getStatusDisplay(String status) {
@@ -91,7 +107,10 @@ class OrderController extends GetxController {
       isLoading.value = true;
       final checkoutUrl = await _orderService.retryPayment(orderId);
       if (await canLaunchUrl(Uri.parse(checkoutUrl))) {
-        await launchUrl(Uri.parse(checkoutUrl), mode: LaunchMode.externalApplication);
+        await launchUrl(
+          Uri.parse(checkoutUrl),
+          mode: LaunchMode.externalApplication,
+        );
       }
     } catch (e) {
       Get.snackbar('Lỗi', 'Không thể khởi tạo lại thanh toán: $e');

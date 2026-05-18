@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../controller/cart_controller.dart';
+import '../../../controller/notification_controller.dart';
 import '../../../controller/settings_controller.dart';
 
 class MainLayout extends StatelessWidget {
@@ -48,6 +50,13 @@ class AppBottomMenuBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cartController = Get.isRegistered<CartController>()
+        ? Get.find<CartController>()
+        : Get.put(CartController());
+    final notificationController = Get.isRegistered<NotificationController>()
+        ? Get.find<NotificationController>()
+        : Get.put(NotificationController());
+
     return Container(
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
@@ -79,26 +88,44 @@ class AppBottomMenuBar extends StatelessWidget {
                 isDark: isDark,
                 onTap: () => onTabSelected(1),
               ),
-              _NavItem(
-                icon: Icons.shopping_cart_rounded,
-                label: 'nav_cart'.tr,
-                isSelected: currentIndex == 2,
-                isDark: isDark,
-                onTap: () => onTabSelected(2),
+              Obx(
+                () => _NavItem(
+                  icon: Icons.shopping_cart_rounded,
+                  label: 'nav_cart'.tr,
+                  isSelected: currentIndex == 2,
+                  isDark: isDark,
+                  badgeCount:
+                      cartController.cartData.value?.items.fold<int>(
+                        0,
+                        (sum, item) => sum + item.quantity,
+                      ) ??
+                      0,
+                  onTap: () => onTabSelected(2),
+                ),
+              ),
+              Obx(
+                () => _NavItem(
+                  icon: Icons.notifications_rounded,
+                  label: 'Thông báo',
+                  isSelected: currentIndex == 3,
+                  isDark: isDark,
+                  badgeCount: notificationController.unreadCount,
+                  onTap: () => onTabSelected(3),
+                ),
               ),
               _NavItem(
                 icon: Icons.receipt_long_rounded,
                 label: 'nav_orders'.tr,
-                isSelected: currentIndex == 3,
+                isSelected: currentIndex == 4,
                 isDark: isDark,
-                onTap: () => onTabSelected(3),
+                onTap: () => onTabSelected(4),
               ),
               _NavItem(
                 icon: Icons.settings_rounded,
                 label: 'nav_settings'.tr,
-                isSelected: currentIndex == 4,
+                isSelected: currentIndex == 5,
                 isDark: isDark,
-                onTap: () => onTabSelected(4),
+                onTap: () => onTabSelected(5),
               ),
             ],
           ),
@@ -113,6 +140,7 @@ class _NavItem extends StatelessWidget {
   final String label;
   final bool isSelected;
   final bool isDark;
+  final int badgeCount;
   final VoidCallback onTap;
 
   const _NavItem({
@@ -120,6 +148,7 @@ class _NavItem extends StatelessWidget {
     required this.label,
     required this.isSelected,
     required this.isDark,
+    this.badgeCount = 0,
     required this.onTap,
   });
 
@@ -133,7 +162,8 @@ class _NavItem extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 220),
         curve: Curves.easeInOut,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        width: 56,
+        padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
               ? selectedColor.withValues(alpha: 0.12)
@@ -143,27 +173,69 @@ class _NavItem extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              child: Icon(
-                icon,
-                size: isSelected ? 26 : 24,
-                color: isSelected
-                    ? selectedColor
-                    : (isDark ? Colors.grey[500] : Colors.grey[400]),
+            SizedBox(
+              height: 28,
+              width: 32,
+              child: Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.center,
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    child: Icon(
+                      icon,
+                      size: isSelected ? 26 : 24,
+                      color: isSelected
+                          ? selectedColor
+                          : (isDark ? Colors.grey[500] : Colors.grey[400]),
+                    ),
+                  ),
+                  if (badgeCount > 0)
+                    Positioned(
+                      right: -2,
+                      top: -2,
+                      child: Container(
+                        constraints: const BoxConstraints(
+                          minWidth: 17,
+                          minHeight: 17,
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.redAccent,
+                          borderRadius: BorderRadius.circular(9),
+                          border: Border.all(
+                            color: isDark
+                                ? const Color(0xFF1E1E1E)
+                                : Colors.white,
+                            width: 1.5,
+                          ),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          badgeCount > 99 ? '99+' : badgeCount.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                            height: 1,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
             const SizedBox(height: 4),
             AnimatedDefaultTextStyle(
               duration: const Duration(milliseconds: 200),
               style: TextStyle(
-                fontSize: 11,
+                fontSize: 10,
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                 color: isSelected
                     ? selectedColor
                     : (isDark ? Colors.grey[500] : Colors.grey[400]),
               ),
-              child: Text(label),
+              child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
             ),
           ],
         ),
